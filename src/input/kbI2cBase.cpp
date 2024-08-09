@@ -322,6 +322,9 @@ int32_t KbI2cBase::runOnce()
         }
         break;
     }
+    case 0x14: { // MPR121
+        break;
+    }
     default:
         LOG_WARN("Unknown kb_model 0x%02x\n", kb_model);
     }

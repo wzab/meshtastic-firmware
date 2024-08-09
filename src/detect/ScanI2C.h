@@ -18,6 +18,7 @@ class ScanI2C
         CARDKB,
         TDECKKB,
         BBQ10KB,
+        MPR121KB,
         RAK14004,
         PMU_AXP192_AXP2101,
         BME_680,
