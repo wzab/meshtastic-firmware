@@ -9,6 +9,7 @@ class KbI2cBase : public Observable<const InputEvent *>, public concurrency::OST
 {
   public:
     explicit KbI2cBase(const char *name);
+    friend class Mpr121KbI2cImpl;
 
   protected:
     virtual int32_t runOnce() override;

@@ -1,13 +1,13 @@
-#include "cardKbI2cImpl.h"
+#include "mpr121KbI2cImpl.h"
 #include "InputBroker.h"
 #include "detect/ScanI2CTwoWire.h"
 #include "main.h"
 
-CardKbI2cImpl *cardKbI2cImpl;
+Mpr121KbI2cImpl *mpr121KbI2cImpl;
 
-CardKbI2cImpl::CardKbI2cImpl() : KbI2cBase("cardKB") {}
+Mpr121KbI2cImpl::Mpr121KbI2cImpl() : KbI2cBase("mpr121KB") {}
 
-void CardKbI2cImpl::init()
+void Mpr121KbI2cImpl::init()
 {
 #ifndef ARCH_PORTDUINO
     if (cardkb_found.address == 0x00) {
@@ -60,5 +60,19 @@ void CardKbI2cImpl::init()
         return;
     }
 #endif
+    // Prepare the keyboard for operation
+    reset();
+    // Configure the keyboard LED
+    pinMode(MPR121_LED, OUTPUT);
+    // Connect the keyboard interrupt
+    pinMode(MPR121_IRQ, INPUT_PULLUP);
+    attachInterrupt(MPR121_IRQ, handleInt, FALLING);
     inputBroker->registerSource(this);
 }
+
+void Mpr121KbI2cImpl::handleInt()
+{
+    mpr121KbI2cImpl->intHandler();
+}
+
+void Mpr121KbI2cImpl::intHandler() {}
