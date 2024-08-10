@@ -105,6 +105,20 @@ uint16_t Mpr121KbI2cImpl::reg16_read(uint8_t addr)
     return val;
 }
 
+int32_t Mpr121KbI2cImpl::read()
+{
+    uint16_t new_state = touched();
+    uint16_t mask = 1;
+    for (int i = 0; i < 12; i++) {
+        if ((old_state & mask) && (!(new_state & mask))) {
+            kb12key->key(i);
+        }
+        mask <<= 1;
+    }
+    old_state = new_state;
+    return 0;
+}
+
 void Mpr121KbI2cImpl::set_thresholds(uint8_t touch, uint8_t release)
 {
     // Sets the touch and release thresholds (0-255) for all electrodes

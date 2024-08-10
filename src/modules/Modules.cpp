@@ -8,6 +8,7 @@
 #include "input/UpDownInterruptImpl1.h"
 #include "input/cardKbI2cImpl.h"
 #include "input/kbMatrixImpl.h"
+#include "input/mpr121KbI2cImpl.h"
 #endif
 #if !MESHTASTIC_EXCLUDE_ADMIN
 #include "modules/AdminModule.h"
@@ -159,6 +160,8 @@ void setupModules()
 
         cardKbI2cImpl = new CardKbI2cImpl();
         cardKbI2cImpl->init();
+        mpr121KbI2cImpl = new Mpr121KbI2cImpl();
+        mpr121KbI2cImpl->init();
 #ifdef INPUTBROKER_MATRIX_TYPE
         kbMatrixImpl = new KbMatrixImpl();
         kbMatrixImpl->init();

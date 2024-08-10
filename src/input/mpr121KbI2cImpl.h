@@ -1,6 +1,7 @@
 #pragma once
+#include "concurrency/Periodic.h"
+#include "kb12key.h"
 #include "kbI2cBase.h"
-
 /**
  * @brief The idea behind this class to have static methods for the event handlers.
  *      Check attachInterrupt() at RotaryEncoderInteruptBase.cpp
@@ -10,12 +11,15 @@
  */
 
 #define MPR121_LED 13
-#define MPR121_IRQ 15
+#define MPR121_IRQ 14
 
 class Mpr121KbI2cImpl : public KbI2cBase
 {
   public:
+    Kb12key *kb12key;
+    concurrency::Periodic *reader;
     Mpr121KbI2cImpl();
+    uint16_t old_state;
     void init();
     void reg8_write(uint8_t addr, uint8_t val);
     uint8_t reg8_read(uint8_t addr);
@@ -28,6 +32,7 @@ class Mpr121KbI2cImpl : public KbI2cBase
     void reset();
     static void handleInt();
     void intHandler();
+    int32_t read();
 };
 
 extern Mpr121KbI2cImpl *mpr121KbI2cImpl;
