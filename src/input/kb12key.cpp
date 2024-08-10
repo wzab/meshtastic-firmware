@@ -3,6 +3,7 @@
   License: MIT
 */
 #include "kb12key.h"
+#include "main.h"
 
 Kb12key::Kb12key()
 {
@@ -86,6 +87,7 @@ static char *kb_layout[KB12KEY_NMODES][KB12KEY_NKEY] = {
 
 void Kb12key::emit(uint8_t key)
 {
+    LOG_INFO("Emit: %c", key);
     uint8_t new_head = (queue_head + 1) % QUEUE_LENGTH;
     if (new_head != queue_tail) {
         queue[queue_head] = key;
@@ -102,7 +104,7 @@ uint8_t Kb12key::get()
 {
     if (queue_tail == queue_head)
         return 0;
-    uint8_t res = queue[queue_head];
+    uint8_t res = queue[queue_tail];
     queue_tail = (queue_tail + 1) % QUEUE_LENGTH;
     return res;
 }
@@ -116,6 +118,7 @@ void Kb12key::tick()
 
 void Kb12key::key(int key)
 {
+    LOG_INFO("key_input: %d", key);
     if ((key < 0) || (key > 11)) {
         return;
     }

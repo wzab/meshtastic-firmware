@@ -51,6 +51,7 @@ void Mpr121KbI2cImpl::init()
             case ScanI2C::DeviceType::MPR121KB:
                 // assign an arbitrary value to distinguish from other models
                 kb_model = 0x14;
+                LOG_INFO("Found MPR121KB keyboard!");
                 break;
             default:
                 // use this as default since it's also just zero
@@ -69,20 +70,32 @@ void Mpr121KbI2cImpl::init()
         return;
     }
 #endif
-    kb12key = new Kb12key();
-    // Prepare the keyboard for operation
-    reset();
-    // Configure the keyboard LED
-    pinMode(MPR121_LED, OUTPUT);
-    digitalWrite(MPR121_LED, 0);
-    // Start the keyboard reading thread
-    reader = new concurrency::Periodic("mpr_reader", mpr121_read);
-    // That thread will be woken by MPR121 interrupt, receive the current status and invoke the key routine.
-    // Connect the keyboard interrupt
-    pinMode(MPR121_IRQ, INPUT_PULLUP);
-    attachInterrupt(MPR121_IRQ, handleInt, FALLING);
-    inputBroker->registerSource(this);
+    i2cBus = &Wire; // To be fixed!!!
+    if (kb_model == 0x14) {
+        LOG_INFO("Started initialization MPR121KB keyboard!");
+        kb12key = new Kb12key();
+        // Prepare the keyboard for operation
+        reset();
+        // Configure the keyboard LED
+        pinMode(MPR121_LED, OUTPUT);
+        digitalWrite(MPR121_LED, 0);
+        // Start the keyboard reading thread
+        reader = new concurrency::Periodic("mpr_reader", mpr121_read);
+        // That thread will be woken by MPR121 interrupt, receive the current status and invoke the key routine.
+        // Connect the keyboard interrupt
+        pinMode(MPR121_IRQ, INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(MPR121_IRQ), handleInt, FALLING);
+        inputBroker->registerSource(this);
+        LOG_INFO("Finished initialization MPR121KB keyboard!");
+    }
 }
+
+/*
+uint8_t Mpr121KbI2cImpl::get()
+{
+    return kb12key->get();
+}
+*/
 
 void Mpr121KbI2cImpl::handleInt()
 {

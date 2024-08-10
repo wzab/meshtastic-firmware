@@ -33,6 +33,8 @@ class Mpr121KbI2cImpl : public KbI2cBase
     static void handleInt();
     void intHandler();
     int32_t read();
+
+    virtual uint8_t get() { return kb12key->get(); };
 };
 
 extern Mpr121KbI2cImpl *mpr121KbI2cImpl;

@@ -86,6 +86,8 @@ uint8_t Mpr121KbI2cImpl::reg8_read(uint8_t addr)
     uint8_t val;
     i2cBus->beginTransmission(MPR121_KB_ADDR);
     i2cBus->write(addr);
+    i2cBus->endTransmission();
+    i2cBus->requestFrom(MPR121_KB_ADDR, 1);
     val = i2cBus->read();
     i2cBus->endTransmission();
     return val;
@@ -98,6 +100,8 @@ uint16_t Mpr121KbI2cImpl::reg16_read(uint8_t addr)
     uint8_t lsb;
     i2cBus->beginTransmission(MPR121_KB_ADDR);
     i2cBus->write(addr);
+    i2cBus->endTransmission();
+    i2cBus->requestFrom(MPR121_KB_ADDR, 2);
     lsb = i2cBus->read();
     msb = i2cBus->read();
     i2cBus->endTransmission();
@@ -109,6 +113,7 @@ int32_t Mpr121KbI2cImpl::read()
 {
     uint16_t new_state = touched();
     uint16_t mask = 1;
+    LOG_INFO("Running the MPR121 handler: %u", new_state);
     for (int i = 0; i < 12; i++) {
         if ((old_state & mask) && (!(new_state & mask))) {
             kb12key->key(i);
@@ -116,7 +121,7 @@ int32_t Mpr121KbI2cImpl::read()
         mask <<= 1;
     }
     old_state = new_state;
-    return 0;
+    return INT32_MAX;
 }
 
 void Mpr121KbI2cImpl::set_thresholds(uint8_t touch, uint8_t release)

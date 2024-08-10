@@ -13,6 +13,7 @@ class KbI2cBase : public Observable<const InputEvent *>, public concurrency::OST
 
   protected:
     virtual int32_t runOnce() override;
+    virtual uint8_t get() { return 0; };
 
   private:
     const char *_originName;

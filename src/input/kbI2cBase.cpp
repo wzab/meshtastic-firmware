@@ -11,6 +11,13 @@ KbI2cBase::KbI2cBase(const char *name) : concurrency::OSThread(name)
     this->_originName = name;
 }
 
+/*
+uint8_t KbI2cBase::get()
+{
+  return 0;
+}
+*/
+
 uint8_t read_from_14004(TwoWire *i2cBus, uint8_t reg, uint8_t *data, uint8_t length)
 {
     uint8_t readflag = 0;
@@ -323,6 +330,139 @@ int32_t KbI2cBase::runOnce()
         break;
     }
     case 0x14: { // MPR121
+        char c = get();
+        InputEvent e;
+        e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_NONE;
+        e.source = this->_originName;
+        switch (c) {
+        case 0x71: // This is the button q. If modifier and q pressed, it cancels the input
+            if (is_sym) {
+                is_sym = false;
+                e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_CANCEL;
+            } else {
+                e.inputEvent = ANYKEY;
+                e.kbchar = c;
+            }
+            break;
+        case 0x74: // letter t. if modifier and t pressed call 'tab'
+            if (is_sym) {
+                is_sym = false;
+                e.inputEvent = ANYKEY;
+                e.kbchar = 0x09; // TAB Scancode
+            } else {
+                e.inputEvent = ANYKEY;
+                e.kbchar = c;
+            }
+            break;
+        case 0x6d: // letter m. Modifier makes it mute notifications
+            if (is_sym) {
+                is_sym = false;
+                e.inputEvent = ANYKEY;
+                e.kbchar = 0xac; // mute notifications
+            } else {
+                e.inputEvent = ANYKEY;
+                e.kbchar = c;
+            }
+            break;
+        case 0x6f: // letter o(+). Modifier makes screen increase in brightness
+            if (is_sym) {
+                is_sym = false;
+                e.inputEvent = ANYKEY;
+                e.kbchar = 0x11; // Increase Brightness code
+            } else {
+                e.inputEvent = ANYKEY;
+                e.kbchar = c;
+            }
+            break;
+        case 0x69: // letter i(-).  Modifier makes screen decrease in brightness
+            if (is_sym) {
+                is_sym = false;
+                e.inputEvent = ANYKEY;
+                e.kbchar = 0x12; // Decrease Brightness code
+            } else {
+                e.inputEvent = ANYKEY;
+                e.kbchar = c;
+            }
+            break;
+        case 0x20: // Space. Send network ping like double press does
+            if (is_sym) {
+                is_sym = false;
+                e.inputEvent = ANYKEY;
+                e.kbchar = 0xaf; // (fn + space)
+            } else {
+                e.inputEvent = ANYKEY;
+                e.kbchar = c;
+            }
+            break;
+        case 0x67: // letter g. toggle gps
+            if (is_sym) {
+                is_sym = false;
+                e.inputEvent = ANYKEY;
+                e.kbchar = 0x9e;
+            } else {
+                e.inputEvent = ANYKEY;
+                e.kbchar = c;
+            }
+            break;
+        case 0x1b: // ESC
+            e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_CANCEL;
+            break;
+        case 0x08: // Back
+            e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_BACK;
+            e.kbchar = c;
+            break;
+        case 0xb5: // Up
+            e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_UP;
+            e.kbchar = 0xb5;
+            break;
+        case 0xb6: // Down
+            e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_DOWN;
+            e.kbchar = 0xb6;
+            break;
+        case 0xb4: // Left
+            e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_LEFT;
+            e.kbchar = 0xb4;
+            break;
+        case 0xb7: // Right
+            e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_RIGHT;
+            e.kbchar = 0xb7;
+            break;
+        case 0xc: // Modifier key: 0xc is alt+c (Other options could be: 0xea = shift+mic button or 0x4 shift+$(speaker))
+            // toggle moddifiers button.
+            is_sym = !is_sym;
+            e.inputEvent = ANYKEY;
+            e.kbchar = is_sym ? 0xf1 : 0xf2; // send 0xf1 to tell CannedMessages to display that the modifier key is active
+            break;
+        case 0x90: // fn+r
+        case 0x91: // fn+t
+        case 0x9b: // fn+s
+        case 0xac: // fn+m
+        case 0x9e: // fn+g
+        case 0xaf: // fn+space
+            // just pass those unmodified
+            e.inputEvent = ANYKEY;
+            e.kbchar = c;
+            break;
+        case 0x0d: // Enter
+            e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_SELECT;
+            break;
+        case 0x00: // nopress
+            e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_NONE;
+            break;
+        default:           // all other keys
+            if (c > 127) { // bogus key value
+                e.inputEvent = meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_NONE;
+                break;
+            }
+            e.inputEvent = ANYKEY;
+            e.kbchar = c;
+            is_sym = false;
+            break;
+        }
+
+        if (e.inputEvent != meshtastic_ModuleConfig_CannedMessageConfig_InputEventChar_NONE) {
+            this->notifyObservers(&e);
+        }
         break;
     }
     default:
