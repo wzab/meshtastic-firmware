@@ -105,4 +105,5 @@ void Mpr121KbI2cImpl::handleInt()
 void Mpr121KbI2cImpl::intHandler()
 {
     reader->setInterval(0);
+    runASAP = true;
 }
