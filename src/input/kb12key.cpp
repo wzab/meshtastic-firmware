@@ -3,21 +3,28 @@
   License: MIT
 */
 #include "kb12key.h"
+#include "concurrency/Periodic.h"
 #include "main.h"
 
-Kb12key::Kb12key()
+extern int32_t mpr121_tick();
+
+Kb12key::Kb12key(int led_pin)
 {
+    led_pin = led_pin;
+    led_step = 0;
     mode = 0;
     pos = 0;
     last_key = 0;
     last_key_timeout = 0;
     queue_head = 0;
     queue_tail = 0;
+    // Unfortunately, the structure below doesn't work. That's why we have to assign a external function
+    // led_and_timeout = new concurrency::Periodic("led&tout", [this]() -> int32_t { return tick(); });
+    led_and_timeout = new concurrency::Periodic("led&tout", mpr121_tick);
 }
 
 #define KB12KEY_NKEY (12)
 #define KB12KEY_NMODES (4)
-#define KB12KEY_TIMEOUT (2000)
 
 // Remaping of keys
 static uint8_t key_remap[12] = {2, 5, 8, 11, 1, 4, 7, 10, 0, 3, 6, 9};
@@ -109,10 +116,35 @@ uint8_t Kb12key::get()
     return res;
 }
 
-void Kb12key::tick()
+int32_t Kb12key::tick()
 {
     if (last_key_timeout) {
         last_key_timeout--;
+    }
+    led_step = (led_step + 1) % 8;
+    int isOn = 0;
+    switch (mode) {
+    case 1:
+        if ((led_step == 0) || (led_step == 1))
+            isOn = 1;
+        break;
+    case 2:
+        if ((led_step == 0) || (led_step == 3))
+            isOn = 1;
+        break;
+    case 3:
+        if ((led_step == 0) || (led_step == 2) || (led_step == 4))
+            isOn = 1;
+        break;
+    default:
+        break;
+    }
+    LOG_INFO("LED:%d ", isOn);
+    digitalWrite(13, isOn);
+    if ((mode == 0) && (last_key_timeout == 0)) {
+        return INT_MAX;
+    } else {
+        return TICK_PERIOD;
     }
 }
 
@@ -129,6 +161,8 @@ void Kb12key::key(int key)
         // This is a mode switch
         mode = (mode + 1) % KB12KEY_NMODES;
         last_key_timeout = 0;
+        led_and_timeout->setInterval(0);
+        runASAP = true;
         // Set the LED blinking to reflect the mode
         // TBD!
         return;
@@ -150,6 +184,9 @@ void Kb12key::key(int key)
             pos = 0;
         }
         // Repeated key press
+        last_key_timeout = KB12KEY_TIMEOUT;
+        led_and_timeout->setInterval(0);
+        runASAP = true;
         emit(0x08); // backspace
         emit(kb_layout[mode][key][pos]);
     } else {
@@ -158,5 +195,7 @@ void Kb12key::key(int key)
         pos = 0;
         last_key = key;
         last_key_timeout = KB12KEY_TIMEOUT;
+        led_and_timeout->setInterval(0);
+        runASAP = true;
     }
 }

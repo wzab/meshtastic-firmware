@@ -12,7 +12,7 @@ Mpr121KbI2cImpl::Mpr121KbI2cImpl() : KbI2cBase("mpr121KB")
 
 int32_t mpr121_read()
 {
-    digitalWrite(MPR121_LED, 1 - digitalRead(MPR121_LED));
+    // digitalWrite(MPR121_LED, 1 - digitalRead(MPR121_LED));
     return mpr121KbI2cImpl->read();
 }
 
@@ -73,12 +73,12 @@ void Mpr121KbI2cImpl::init()
     i2cBus = &Wire; // To be fixed!!!
     if (kb_model == 0x14) {
         LOG_INFO("Started initialization MPR121KB keyboard!");
-        kb12key = new Kb12key();
-        // Prepare the keyboard for operation
-        reset();
         // Configure the keyboard LED
         pinMode(MPR121_LED, OUTPUT);
         digitalWrite(MPR121_LED, 0);
+        kb12key = new Kb12key(MPR121_LED);
+        // Prepare the keyboard for operation
+        reset();
         // Start the keyboard reading thread
         reader = new concurrency::Periodic("mpr_reader", mpr121_read);
         // That thread will be woken by MPR121 interrupt, receive the current status and invoke the key routine.
@@ -106,4 +106,9 @@ void Mpr121KbI2cImpl::intHandler()
 {
     reader->setInterval(0);
     runASAP = true;
+}
+
+int32_t mpr121_tick()
+{
+    return mpr121KbI2cImpl->kb12key->tick();
 }
