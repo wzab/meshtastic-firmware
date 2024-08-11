@@ -70,7 +70,12 @@ void Mpr121KbI2cImpl::init()
         return;
     }
 #endif
-    i2cBus = &Wire; // To be fixed!!!
+    // Set the i2cBus to the appropriate Bus
+    if (cardkb_found.port == ScanI2C::WIRE1) {
+        i2cBus = &Wire1;
+    } else {
+        i2cBus = &Wire;
+    }
     if (kb_model == 0x14) {
         LOG_INFO("Started initialization MPR121KB keyboard!");
         // Configure the keyboard LED

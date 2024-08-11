@@ -140,7 +140,7 @@ int32_t Kb12key::tick()
         break;
     }
     LOG_INFO("LED:%d ", isOn);
-    digitalWrite(13, isOn);
+    digitalWrite(12, isOn); // Should be taked from a defined value!
     if ((mode == 0) && (last_key_timeout == 0)) {
         return INT_MAX;
     } else {

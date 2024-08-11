@@ -10,8 +10,8 @@
  *      handlers, thus you need to have a RotaryEncoderInterrupt implementation.
  */
 
-#define MPR121_LED 13
-#define MPR121_IRQ 14
+#define MPR121_LED 12
+#define MPR121_IRQ 25
 
 class Mpr121KbI2cImpl : public KbI2cBase
 {
