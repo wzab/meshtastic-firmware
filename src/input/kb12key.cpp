@@ -94,7 +94,7 @@ static char *kb_layout[KB12KEY_NMODES][KB12KEY_NKEY] = {
 
 void Kb12key::emit(uint8_t key)
 {
-    LOG_INFO("Emit: %c", key);
+    // LOG_INFO("Emit: %c", key);
     uint8_t new_head = (queue_head + 1) % QUEUE_LENGTH;
     if (new_head != queue_tail) {
         queue[queue_head] = key;
@@ -139,7 +139,7 @@ int32_t Kb12key::tick()
     default:
         break;
     }
-    LOG_INFO("LED:%d ", isOn);
+    // LOG_INFO("LED:%d ", isOn);
     digitalWrite(12, isOn); // Should be taked from a defined value!
     if ((mode == 0) && (last_key_timeout == 0)) {
         return INT_MAX;
@@ -150,7 +150,7 @@ int32_t Kb12key::tick()
 
 void Kb12key::key(int key)
 {
-    LOG_INFO("key_input: %d", key);
+    // LOG_INFO("key_input: %d", key);
     if ((key < 0) || (key > 11)) {
         return;
     }

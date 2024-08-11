@@ -113,7 +113,7 @@ int32_t Mpr121KbI2cImpl::read()
 {
     uint16_t new_state = touched();
     uint16_t mask = 1;
-    LOG_INFO("Running the MPR121 handler: %u", new_state);
+    // LOG_INFO("Running the MPR121 handler: %u", new_state);
     for (int i = 0; i < 12; i++) {
         if ((old_state & mask) && (!(new_state & mask))) {
             kb12key->key(i);
