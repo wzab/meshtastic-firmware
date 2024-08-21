@@ -111,6 +111,8 @@ void Mpr121KbI2cImpl::intHandler()
 {
     reader->setInterval(0);
     runASAP = true;
+    BaseType_t higherWake = 0;
+    concurrency::mainDelay.interruptFromISR(&higherWake);
 }
 
 int32_t mpr121_tick()
